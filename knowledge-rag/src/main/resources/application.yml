@@ -1,0 +1,123 @@
+server:
+  port: 11003
+  servlet:
+    encoding:
+      charset: UTF-8
+
+spring:
+  ai:
+    dashscope:
+      api-key: ${AI_DASHSCOPE_API_KEY:your-dashscope-api-key}
+
+    vectorstore:
+      milvus:
+        client:
+          host: 47.94.59.4
+          port: ${MILVUS_PORT:19530}
+          username: ${MILVUS_USERNAME:root}
+          password: ${MILVUS_PASSWORD:your-milvus-password}
+        databaseName: ${MILVUS_DATABASE_NAME:default}
+        collectionName: ${MILVUS_COLLECTION_NAME:vector_store}
+        embeddingDimension: 1536
+        indexType: IVF_FLAT
+        metricType: COSINE
+  application:
+    name: knowledge-rag
+  config:
+    import: 
+      - "optional:nacos:rag-config.yaml?group=DEFAULT_GROUP"
+  # Redis 配置
+  data:
+    redis:
+      host: 47.94.59.4
+      port: 6379
+      password: "${REDIS_PASSWORD:your-redis-password}"
+      database: 0
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+  cloud:
+    nacos:
+      config:
+        server-addr: 47.94.59.4:48848
+        namespace: public
+        group: DEFAULT_GROUP
+        file-extension: yaml
+        refresh-enabled: true
+        username: nacos
+        password: "${NACOS_PASSWORD:nacos}"
+        shared-configs:
+          - data-id: default-knowledge-rag-config.yaml
+            group: DEFAULT_GROUP
+            refresh: true
+        import-check:
+          enabled: false
+      discovery:
+        server-addr: 47.94.59.4:48848
+        namespace: public
+        group: DEFAULT_GROUP
+        register-enabled: false  # knowledge-rag不需要注册到Nacos，只需要服务发现
+        username: nacos
+        password: "${NACOS_PASSWORD:nacos}"
+
+# IM服务配置
+im:
+  service:
+    name: im-demo  # IM服务名称，用于Nacos服务发现
+
+# Knowledge RAG 配置
+knowledge-rag:
+  # 检索配置 - 核心配置项，重点配置召回数量和相似度
+  # 可通过Nacos动态调整
+  retrieval:
+    # 召回数量 - 从向量数据库检索的文档数量
+    topK: 5
+    # 相似度阈值 - 向量检索的相似度阈值
+    similarityThreshold: 0.7
+    # 最大token数 - 用于控制检索结果的总长度
+    maxTokens: 4000
+
+# RocketMQ 配置
+rocketmq:
+  proxy-server: 47.94.59.4:18888;101.200.147.25:18888
+  consumer:
+    # 活动咨询主题订阅配置
+    group: "knowledge-rag-activity-inquiry-consumer"
+    topic: "supportbot-activity-inquiry"  # 订阅活动咨询主题
+    # 消费超时配置
+    invisible-time: 60  # 消息不可见时间（秒），给消息处理足够的时间
+    await-duration: 30  # 等待超时时间（秒），避免长时间阻塞
+    consume-timeout: 60 # 消费超时时间（秒），与invisible-time保持一致
+    max-reconsume-times: 3  # 最大重试次数
+    # 线程池配置
+    thread-pool:
+      core-size: 2      # 核心线程数
+      max-size: 4       # 最大线程数
+      queue-capacity: 100 # 队列容量
+
+# 日志配置
+logging:
+  level:
+    com.szwl.supportbot.knowledgerag: DEBUG
+    org.springframework.cloud.nacos: INFO
+    # 添加 RocketMQ 相关调试日志
+    org.apache.rocketmq: DEBUG
+    org.apache.rocketmq.spring: DEBUG
+    org.apache.rocketmq.client: DEBUG
+    org.apache.rocketmq.client.impl: DEBUG
+    org.apache.rocketmq.client.producer: DEBUG
+    org.apache.rocketmq.client.consumer: DEBUG
+    # 添加 Spring AI 相关日志
+    org.springframework.ai: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/knowledge-rag.log
+    max-size: 100MB
+    max-history: 30
+    total-size-cap: 1GB

@@ -1,0 +1,127 @@
+server:
+  port: 11002
+  servlet:
+    encoding:
+      charset: UTF-8
+
+spring:
+  ai:
+    dashscope:
+      api-key: "${AI_DASHSCOPE_API_KEY:your-dashscope-api-key}"
+      model: "qwen-turbo"
+      options:
+        temperature: 0.7
+        max-tokens: 1000
+  application:
+    name: assistant
+  config:
+    import: "optional:nacos:default-agent-config.yaml?group=DEFAULT_GROUP"
+  # Redis 配置
+  data:
+    redis:
+      host: 47.94.59.4
+      port: 6379
+      password: "${REDIS_PASSWORD:your-redis-password}"
+      database: 0
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+  cloud:
+    nacos:
+      config:
+        server-addr: 47.94.59.4:48848
+        namespace: public
+        group: DEFAULT_GROUP
+        file-extension: yaml
+        refresh-enabled: true
+        username: nacos
+        password: "${NACOS_PASSWORD:nacos}"
+        shared-configs:
+          - data-id: default-agent-config.yaml
+            group: DEFAULT_GROUP
+            refresh: true
+        import-check:
+          enabled: false
+      discovery:
+        server-addr: 47.94.59.4:48848
+        namespace: public
+        group: DEFAULT_GROUP
+        register-enabled: false  # assistant不需要注册到Nacos，只需要服务发现
+        username: nacos
+        password: "${NACOS_PASSWORD:nacos}"
+
+# IM服务配置
+im:
+  service:
+    name: im-demo  # IM服务名称，用于Nacos服务发现
+
+# Agent 通用配置
+# 具体的业务类型配置通过 DynamicConfigService 从 Nacos 动态加载
+agent:
+  # 系统提示词 - 可以从 Nacos 动态更新
+  systemPrompt: |
+    你是一名专业的 AI 助手，可以帮助用户处理各种业务需求。
+    你具备以下能力：
+    1. 通过 MCP 服务器连接外部工具
+    2. 智能对话和问题解答
+    3. 根据用户需求提供专业建议
+    
+    请始终保持友好和专业的态度，确保准确理解用户需求并提供有效帮助。
+  
+  mcp:
+    client:
+      toolcallback:
+        enabled: true
+      sse:
+        connections:
+          default:
+            url: "${MCP_DEFAULT_URL:https://your-mcp-server.com/sse}"
+            apiKey: "${MCP_DEFAULT_API_KEY:}"
+            params:
+              timeout: "30000"
+              retry: "3"
+
+
+
+# RocketMQ 配置
+rocketmq:
+  proxy-server: 47.94.59.4:18888;101.200.147.25:18888
+  consumer:
+    # 业务咨询主题订阅配置
+    group: "assistant-business-consultation-consumer"
+    topic: "supportbot-business-consultation"  # 订阅业务咨询主题
+    # 消费超时配置
+    invisible-time: 60  # 消息不可见时间（秒），给消息处理足够的时间
+    await-duration: 30  # 等待超时时间（秒），避免长时间阻塞
+    consume-timeout: 60 # 消费超时时间（秒），与invisible-time保持一致
+    max-reconsume-times: 3  # 最大重试次数
+    # 线程池配置
+    thread-pool:
+      core-size: 2      # 核心线程数
+      max-size: 4       # 最大线程数
+      queue-capacity: 100 # 队列容量
+
+# 日志配置
+logging:
+  level:
+    com.szwl.supportbot.assistant: DEBUG
+    org.springframework.cloud.nacos: INFO
+    # 添加 RocketMQ 相关调试日志
+    org.apache.rocketmq: DEBUG
+    org.apache.rocketmq.spring: DEBUG
+    org.apache.rocketmq.client: DEBUG
+    org.apache.rocketmq.client.impl: DEBUG
+    org.apache.rocketmq.client.producer: DEBUG
+    org.apache.rocketmq.client.consumer: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/assistant.log
+    max-size: 100MB
+    max-history: 30
+    total-size-cap: 1GB

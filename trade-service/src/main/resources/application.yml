@@ -1,0 +1,20 @@
+server:
+  port: 17082
+
+spring:
+  application:
+    name: trade-service
+  cloud:
+    nacos:
+      server-addr: 47.94.59.4:48848
+      username: nacos
+      password: nacos
+      namespace: public
+      group: DEFAULT_GROUP
+      discovery:
+        enabled: true
+
+logging:
+  level:
+    com.business.trade: DEBUG
+    com.alibaba.nacos: DEBUG

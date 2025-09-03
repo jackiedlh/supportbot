@@ -1,0 +1,28 @@
+# IntelliJ IDEA 相关
+.idea/
+*.iml
+
+# Maven/Gradle 构建输出
+**/target/
+**/idea/
+**/build/
+**/.classpath
+**/.project
+**/.settings
+
+# 编译生成的类文件
+*.class
+
+# 日志文件
+*.log
+
+# 其他常见忽略
+.DS_Store
+*.swp
+*.swo
+*.bak
+*.tmp
+
+# 依赖目录（如果使用本地依赖）
+lib/
+libs/

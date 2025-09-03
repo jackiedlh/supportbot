@@ -1,0 +1,41 @@
+server:
+  port: 11005
+  servlet:
+    encoding:
+      charset: UTF-8
+
+spring:
+  application:
+    name: im-demo
+  
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 47.94.59.4:48848
+        namespace: public
+        group: DEFAULT_GROUP
+        register-enabled: true
+        username: nacos
+        password: "${NACOS_PASSWORD:nacos}"
+        heart-beat-interval: 5000
+        heart-beat-timeout: 15000
+        ip-delete-timeout: 30000
+
+#问题分类模块API地址
+question-classifier:
+  api:
+    url: "http://localhost:11001/api/classify"
+
+# 日志配置
+logging:
+  level:
+    com.szwl.supportbot.imdemo: DEBUG
+    org.springframework.web.socket: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/im-demo.log
+    max-size: 100MB
+    max-history: 30
+    total-size-cap: 1GB

@@ -1,0 +1,20 @@
+server:
+  port: 17081
+
+spring:
+  application:
+    name: product-service
+  cloud:
+    nacos:
+      server-addr: 47.94.59.4:48848
+      username: nacos
+      password: nacos
+      namespace: public
+      group: DEFAULT_GROUP
+      discovery:
+        enabled: true
+
+logging:
+  level:
+    com.business.product: DEBUG
+    com.alibaba.nacos: DEBUG

@@ -1,0 +1,99 @@
+server:
+  port: 11001
+
+spring:
+  application:
+    name: question-classifier
+  profiles:
+    active: dev
+  # 添加配置文件导入
+  config:
+    import: 
+      - "optional:nacos:question-categories.yaml?group=DEFAULT_GROUP"
+      - "optional:nacos:question-classifier-prompt.yaml?group=DEFAULT_GROUP"
+
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 47.94.59.4:48848
+        namespace: ${NACOS_NAMESPACE:public}
+        group: ${NACOS_GROUP:DEFAULT_GROUP}
+        register-enabled: true
+      config:
+        server-addr: 47.94.59.4:48848
+        namespace: ${NACOS_NAMESPACE:public}
+        group: ${NACOS_GROUP:DEFAULT_GROUP}
+        file-extension: yaml  # 改为yaml，与assistant保持一致
+        refresh-enabled: true
+        username: nacos
+        password: "${NACOS_PASSWORD:nacos}"
+        shared-configs:
+          - data-id: question-classifier-prompt.yaml  # 改为新的文件名
+            group: ${NACOS_GROUP:DEFAULT_GROUP}
+            refresh: true
+          - data-id: ai-gateway.yaml  # 改为yaml扩展名
+            group: ${NACOS_GROUP:DEFAULT_GROUP}
+            refresh: true
+          - data-id: question-categories.yaml  # 改为yaml扩展名
+            group: ${NACOS_GROUP:DEFAULT_GROUP}
+            refresh: true
+        import-check:
+          enabled: false
+
+  ai:
+    deepseek:
+      # 使用官方 DeepSeek API
+      api-key: ${AI_DEEPSEEK_API_KEY:your-deepseek-api-key}
+      base-url: "https://api.deepseek.com"
+      chat:
+        options:
+          model: deepseek-chat
+          temperature: 0.1
+          max-tokens: 1024
+
+    dashscope:
+      enabled: false  # 禁用 DashScope 自动配置
+  data:
+    redis:
+      host: 47.94.59.4
+      port: 16379
+      password: "${REDIS_PASSWORD:your-redis-password}"
+      database: 0
+      timeout: 5000ms
+
+rocketmq:
+  name-server: 47.94.59.4:18888;101.200.147.25:18888
+  default-topic: supportbot-general-chat
+  # 禁用 SSL 连接
+  ssl:
+    enabled: false
+  # 生产者相关配置
+  producer:
+    group: supportbot-producer-group
+
+    send-message-timeout: 10000  # 增加超时时间到10秒
+    retry-times-when-send-failed: 3
+    retry-times-when-send-async-failed: 3
+    retry-next-server: true
+
+
+
+logging:
+  level:
+    #com.alibaba.cloud.nacos: DEBUG
+    #com.alibaba.nacos: DEBUG
+    #org.springframework.cloud.nacos: DEBUG
+    #org.springframework.boot.context.config: DEBUG
+    #org.springframework.boot.autoconfigure: DEBUG
+    # 添加 RocketMQ 相关日志
+    org.apache.rocketmq: DEBUG
+    org.apache.rocketmq.spring: DEBUG
+    com.szwl.supportbot.questionclassifier.config: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/question-classifier.log
+    max-size: 100MB
+    max-history: 30
+    total-size-cap: 1GB

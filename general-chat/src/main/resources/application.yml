@@ -1,0 +1,102 @@
+server:
+  port: 11004
+  servlet:
+    encoding:
+      charset: UTF-8
+
+spring:
+  ai:
+    dashscope:
+      api-key: "${AI_DASHSCOPE_API_KEY:your-dashscope-api-key}"
+      model: "qwen-turbo"
+      options:
+        temperature: 0.7
+        max-tokens: 1000
+  application:
+    name: general-chat
+  config:
+    import: 
+      - "optional:nacos:chat-config.yaml?group=DEFAULT_GROUP"
+  # Redis 配置
+  data:
+    redis:
+      host: 47.94.59.4
+      port: 6379
+      password: "${REDIS_PASSWORD:your-redis-password}"
+      database: 0
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+  cloud:
+    nacos:
+      config:
+        server-addr: 47.94.59.4:48848
+        namespace: public
+        group: DEFAULT_GROUP
+        file-extension: yaml
+        refresh-enabled: true
+        username: nacos
+        password: "${NACOS_PASSWORD:nacos}"
+        shared-configs:
+          - data-id: default-general-chat-config.yaml
+            group: DEFAULT_GROUP
+            refresh: true
+        import-check:
+          enabled: false
+      discovery:
+        server-addr: 47.94.59.4:48848
+        namespace: public
+        group: DEFAULT_GROUP
+        register-enabled: false  # general-chat不需要注册到Nacos，只需要服务发现
+        username: nacos
+        password: "${NACOS_PASSWORD:nacos}"
+
+# IM服务配置
+im:
+  service:
+    name: im-demo  # IM服务名称，用于Nacos服务发现
+
+# RocketMQ 配置
+rocketmq:
+  proxy-server: 47.94.59.4:18888;101.200.147.25:18888
+  consumer:
+    # 通用聊天主题订阅配置
+    group: "general-chat-consumer"
+    topic: "supportbot-general-chat"  # 订阅通用聊天主题
+    # 消费超时配置
+    invisible-time: 60  # 消息不可见时间（秒），给消息处理足够的时间
+    await-duration: 30  # 等待超时时间（秒），避免长时间阻塞
+    consume-timeout: 60 # 消费超时时间（秒），与invisible-time保持一致
+    max-reconsume-times: 3  # 最大重试次数
+    # 线程池配置
+    thread-pool:
+      core-size: 2      # 核心线程数
+      max-size: 4       # 最大线程数
+      queue-capacity: 100 # 队列容量
+
+# 日志配置
+logging:
+  level:
+    com.szwl.supportbot.generalchat: DEBUG
+    org.springframework.cloud.nacos: INFO
+    # 添加 RocketMQ 相关调试日志
+    org.apache.rocketmq: DEBUG
+    org.apache.rocketmq.spring: DEBUG
+    org.apache.rocketmq.client: DEBUG
+    org.apache.rocketmq.client.impl: DEBUG
+    org.apache.rocketmq.client.producer: DEBUG
+    org.apache.rocketmq.client.consumer: DEBUG
+    # 添加 Spring AI 相关日志
+    org.springframework.ai: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/general-chat.log
+    max-size: 100MB
+    max-history: 30
+    total-size-cap: 1GB
