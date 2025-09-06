@@ -1,3 +1,6 @@
+详细部署及配置说明见共享文档
+https://wlhmbop707.feishu.cn/wiki/EcirwBsRUiMasTkTs5mcj6WinFb?from=from_copylink
+
 项目说明
 1、customer-service-client
 客服系统前端工程
@@ -23,10 +26,10 @@ Agent项目，处理需要调用工具处理的用户问题，支持根据请求
 商品服务，作为存量业务，通过Nacos和Higress配置提供mcp访问能力
 此工程为demo工程，目的在于给Agent提供工具，接口的实现均为写死的数据
 
-7、trade-service
+8、trade-service
 交易服务，作为存量业务，通过Nacos和Higress配置提供mcp访问能力
 此工程为demo工程，目的在于给Agent提供工具，接口的实现均为写死的数据
 
-7、workorder-service
+9、workorder-service
 工单服务，作为存量业务，通过Nacos和Higress配置提供mcp访问能力
 此工程为demo工程，目的在于给Agent提供工具，接口的实现均为写死的数据
